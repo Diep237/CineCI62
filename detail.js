@@ -1,4 +1,3 @@
-
 import { firebaseDB } from "./FB.js"
 
 const thumbnailImg = document.getElementById('body-box-left_img')
@@ -322,6 +321,5 @@ document.getElementById('body-box-left').addEventListener('click', () => {
     window.location.assign('movie.html')
 
 })
-
 
 
