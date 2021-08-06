@@ -230,12 +230,11 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
 
                 update[i].addEventListener('click', (e) => {
 
-                    document.getElementById(`updateOption-${snapshot.key}`).style.display = 'flex'
-                    document.getElementById(`userCmt-${snapshot.key}`).style.display = 'none'
-                    document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'block'
-                    document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'none'
 
-        
+
+
+
+
 
                     let oldCmt = e.target.parentElement.parentElement.parentElement
                         .previousElementSibling.lastElementChild
@@ -243,6 +242,13 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
                     oldCmt.innerText = e.target.parentElement.parentElement.parentElement
                         .previousElementSibling.lastElementChild.previousElementSibling.innerText
 
+
+
+
+                    document.getElementById(`updateOption-${snapshot.key}`).style.display = 'flex'
+                    document.getElementById(`userCmt-${snapshot.key}`).style.display = 'none'
+                    document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'block'
+                    document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'none'
 
                     oldCmt.addEventListener('blur', event => {
                         const newCmt = event.target.innerText
@@ -256,12 +262,6 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
                                 firebase.database().ref('movie').child(updateId)
                                     .update({ rtUserCmts: newCmt })
 
-                                document.getElementById(`updateOption-${snapshot.key}`).style.display = 'none'
-                                document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'none'
-                                document.getElementById(`userCmt-${snapshot.key}`).style.display = 'block'
-                                document.getElementById(`userCmt-${snapshot.key}`).innerHTML = newCmt
-                                document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'block'
-                                document.getElementById(`ellipsis-${snapshot.key}`).lastElementChild.style.display = 'none'
                             })
                         });
 
@@ -271,8 +271,13 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
 
             }
 
-            await firebase.database().ref('movie').on("child_changed", (snapshot) => {
-
+            firebase.database().ref('movie').on("child_changed", (snapshot) => {
+                document.getElementById(`updateOption-${snapshot.key}`).style.display = 'none'
+                document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'none'
+                document.getElementById(`userCmt-${snapshot.key}`).style.display = 'block'
+                document.getElementById(`userCmt-${snapshot.key}`).innerHTML = snapshot.val().rtUserCmts
+                document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'block'
+                document.getElementById(`ellipsis-${snapshot.key}`).lastElementChild.style.display = 'none'
             })
         }
 
