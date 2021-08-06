@@ -12,7 +12,6 @@ const actors = document.querySelector('.body-box-center-content-Info_actors')
 
 
 const cmtInput = document.getElementById('comment-input')
-const wholeCmts = document.getElementById('wholeCmts')
 
 // Click
 const idSelected = localStorage.getItem('id')
@@ -30,9 +29,6 @@ async function getData() {
     actors.innerText = result.data().actors != undefined ? result.data().actors : showText;
     gerne.innerText = result.data().gerne != undefined ? result.data().gerne : showText;
     director.innerText = result.data().director != undefined ? result.data().director : showText;
-
-
-
 
 }
 getData()
@@ -55,7 +51,6 @@ document.getElementById('navbarLeft-detail_Home').addEventListener('click', () =
 
 
 const loginId = localStorage.getItem('loginId')
-
 
 document.querySelector('.comment_btn').addEventListener('click', (e) => {
 
@@ -90,7 +85,7 @@ document.querySelector('.comment_btn').addEventListener('click', (e) => {
                     getId()
 
                 })
-            }
+        }
         addCmt()
     }
 })
@@ -116,7 +111,7 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
         </div>
         
 
-        <div class='ellipsis'>  
+        <div class='ellipsis' id = 'ellipsis-${snapshot.key}' >  
         
             <i id = '${snapshot.val().rtViewerId}' class="fas fa-ellipsis-v"></i>
 
@@ -139,7 +134,7 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
           
         </div>
 
-        <div class = 'update-option'>
+        <div class = 'update-option' id = 'updateOption-${snapshot.key}'>
             <div class = 'update-option_cancel'>HỦY</div>
             <div class = 'update-option_save' id = 'save-${snapshot.key}'>LƯU</div>
         </div>
@@ -169,9 +164,6 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
                 })
             }
         }
-
-
-
 
 
 
@@ -238,26 +230,12 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
 
                 update[i].addEventListener('click', (e) => {
 
-                    console.log('123')
-                    e.target.parentElement.parentElement.parentElement.nextElementSibling.style.display = 'flex'
-                    console.log(e.target.parentElement.parentElement.parentElement.previousElementSibling
-                        .firstElementChild.nextElementSibling)
+                    document.getElementById(`updateOption-${snapshot.key}`).style.display = 'flex'
+                    document.getElementById(`userCmt-${snapshot.key}`).style.display = 'none'
+                    document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'block'
+                    document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'none'
 
-
-                    if (e.target.parentElement.parentElement.parentElement.previousElementSibling
-                        .firstElementChild.nextElementSibling) {
-
-                        e.target.parentElement.parentElement.parentElement.previousElementSibling
-                            .firstElementChild.nextElementSibling
-                            .style.display = 'none'
-                    }
-
-                    e.target.parentElement.parentElement.parentElement.previousElementSibling
-                        .lastElementChild
-                        .style.display = 'block'
-
-                    e.target.parentElement.parentElement.parentElement.style.display = 'none'
-
+        
 
                     let oldCmt = e.target.parentElement.parentElement.parentElement
                         .previousElementSibling.lastElementChild
@@ -269,33 +247,33 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
                     oldCmt.addEventListener('blur', event => {
                         const newCmt = event.target.innerText
                         const save = [...RTsec.getElementsByClassName('update-option_save')]
-        
+
                         save.forEach(element => {
                             element.addEventListener('click', (i) => {
                                 const updateId = i.target.id.slice(5)
-                       
+
 
                                 firebase.database().ref('movie').child(updateId)
                                     .update({ rtUserCmts: newCmt })
 
-
-                                i.target.parentElement.style.display = 'none'
-                                i.target.parentElement.previousElementSibling.previousElementSibling.lastElementChild
-                                    .style.display = 'none'
-                                i.target.parentElement.previousElementSibling.previousElementSibling.lastElementChild.previousElementSibling
-                                    .style.display = 'block'
-                                i.target.parentElement.previousElementSibling.previousElementSibling.lastElementChild.previousElementSibling.innerHTML = newCmt
-                                e.target.parentElement.parentElement.previousElementSibling.parentElement.style.display = 'block'
-                                e.target.parentElement.parentElement.previousElementSibling.parentElement.lastElementChild.style.display = 'none'
-
+                                document.getElementById(`updateOption-${snapshot.key}`).style.display = 'none'
+                                document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'none'
+                                document.getElementById(`userCmt-${snapshot.key}`).style.display = 'block'
+                                document.getElementById(`userCmt-${snapshot.key}`).innerHTML = newCmt
+                                document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'block'
+                                document.getElementById(`ellipsis-${snapshot.key}`).lastElementChild.style.display = 'none'
                             })
                         });
 
                     })
 
                 })
+
             }
 
+            await firebase.database().ref('movie').on("child_changed", (snapshot) => {
+
+            })
         }
 
         handleCmt()
@@ -304,22 +282,13 @@ firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
 
 
 
-firebase.database().ref('movie').on("child_changed", (snapshot) => {
-    snapshot.innerHTML = '123'
-    
-})
-
 // Go to movie
-
 
 
 document.getElementById('body-box-left').addEventListener('click', () => {
     localStorage.setItem('movieId', idSelected)
     window.location.assign('movie.html')
-    
- 
-   
-   
+
 })
 
 
