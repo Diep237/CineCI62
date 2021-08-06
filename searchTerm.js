@@ -58,6 +58,19 @@ async function getDataBySearch() {
             `
             }
         }
+        
+           // Click item form the Search result 
+        const x = bodyEl.querySelectorAll('.bodyItem')
+        console.log(x.length)
+
+        x.forEach((value) => {
+
+            value.addEventListener('click', () => {
+                localStorage.setItem('id', value.id)
+                window.location.assign('detail.html')
+
+            })
+        })
     })
 
 
