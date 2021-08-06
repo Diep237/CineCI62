@@ -1,346 +1,327 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+import { firebaseDB } from "./FB.js"
 
-
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
-        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
-
-    <link rel="stylesheet" href="detail.css">
-    <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="login.css">
-    <!-- font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+const thumbnailImg = document.getElementById('body-box-left_img')
+const engTitle = document.querySelector('.body-box-center-title h3')
+const vieTitle = document.querySelector('.body-box-center-title p')
+const description = document.querySelector('.body-box-center-content_description')
+const nation = document.querySelector('.body-box-center-content-Info_nation')
+const gerne = document.querySelector('.body-box-center-content-Info_gerne')
+const director = document.querySelector('.body-box-center-content-Info_director')
+const actors = document.querySelector('.body-box-center-content-Info_actors')
 
 
+const cmtInput = document.getElementById('comment-input')
 
+// Click
+const idSelected = localStorage.getItem('id')
+async function getData() {
 
+    // console.log(idSelected)
+    const result = await firebase.firestore().collection('Home').doc(idSelected).get()
+    const showText = 'Đang cập nhật'
 
+    thumbnailImg.src = result.data().thumbnail
+    engTitle.innerText = result.data().eTitle.toUpperCase()
+    vieTitle.innerText = result.data().vTitle
+    description.innerText = result.data().description != undefined ? result.data().description : showText;
+    nation.innerText = result.data().nation != undefined ? result.data().nation : showText;
+    actors.innerText = result.data().actors != undefined ? result.data().actors : showText;
+    gerne.innerText = result.data().gerne != undefined ? result.data().gerne : showText;
+    director.innerText = result.data().director != undefined ? result.data().director : showText;
 
-
-</head>
-
-
-
-
-
-<body>
-
-
-
-
-    
-    <div class="overlay"></div>
+}
+getData()
 
 
 
-    <div>
-        <i id='loginCancelIcon' class="fas fa-times"></i>
+document.getElementById('navbarLeft-detail_Search').addEventListener('click', () => {
+    // localStorage.removeItem('keyword')
+    window.location.assign('search.html')
+
+})
+
+document.getElementById('navbarLeft-detail_Home').addEventListener('click', () => {
+    // localStorage.removeItem('keyword')
+    window.location.assign('home.html')
+
+})
+
+
+
+
+const loginId = localStorage.getItem('loginId')
+
+document.querySelector('.comment_btn').addEventListener('click', (e) => {
+
+    if (loginId == null) {
+        window.alert('Bạn phải đăng nhập để bình luận')
+    } else if (loginId != null && cmtInput != '') {
+
+        async function addCmt() {
+            const data = await firebase.firestore().collection('Users').doc(loginId).get()
+
+            firebase.firestore().collection('Home').doc(idSelected)
+                .collection('viewers').add({
+                    userId: loginId,
+                    userName: data.data().name,
+                    userCmts: cmtInput.value,
+                    createAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(function (docRef) {
+
+                    async function getId() {
+                        const dataX = await firebase.firestore().collection('Home').doc(idSelected)
+                            .collection('viewers').doc(docRef.id).get()
+                        firebase.database().ref('movie').push().set({
+                            rtId: idSelected,
+                            rtUserId: dataX.data().userId,
+                            rtUserName: dataX.data().userName,
+                            rtUserCmts: dataX.data().userCmts,
+                            rtViewerId: docRef.id,
+
+                        })
+
+                    }
+                    getId()
+
+                })
+        }
+        addCmt()
+    }
+})
+
+
+
+
+
+
+firebase.database().ref('movie').orderByChild('rtId').equalTo(idSelected)
+    .on("child_added", (snapshot) => {
+        document.getElementById('RTsec').innerHTML += `
+        <div class='userComment' id = 'cmt-${snapshot.key}'>
+        <div class='userComment_image'>
+            <img src="https://i.ibb.co/svd6QPK/default-avatar.jpg" alt="">
+        </div>
+
+        <div class='userComment_cmt'>
+            <h4 id = 'userName-${snapshot.key}'>${snapshot.val().rtUserName}</h4>
+            <p id = 'userCmt-${snapshot.key}'>${snapshot.val().rtUserCmts}</p>
+
+            <div id = 'userUpdate-${snapshot.key}' class='userComment_cmt_update'contenteditable="true"></div>
+        </div>
+        
+
+        <div class='ellipsis' id = 'ellipsis-${snapshot.key}' >  
+        
+            <i id = '${snapshot.val().rtViewerId}' class="fas fa-ellipsis-v"></i>
+
+            <div class = 'ellipsis-option'>
+                <div class = 'ellipsis-option_update'>
+                    <i class="fas fa-pen"></i>
+                    <p>Chỉnh sửa</p>
+                </div>
+                <div class = 'ellipsis-option_delete' id='${snapshot.key}'>
+                    <i class="fas fa-trash"></i>
+                    <p>Xóa</p>
+                </div>
+                <div class = 'ellipsis-option_report'>
+                    <i class="fas fa-flag"></i>
+                    <p>Báo cáo</p>
+                </div>
+
+            </div>
+
+          
+        </div>
+
+        <div class = 'update-option' id = 'updateOption-${snapshot.key}'>
+            <div class = 'update-option_cancel'>HỦY</div>
+            <div class = 'update-option_save' id = 'save-${snapshot.key}'>LƯU</div>
+        </div>
+
+        
     </div>
 
-    <!-- SIGNUP&LOGIN -->
-    <div class='signupAndLogin'>
+        `
 
-        <div class='signupAndLogin-Container'>
 
-            <div class='login-pic'>
-                <img src="https://i.ibb.co/DQ4CXFw/5.jpg" alt="">
-            </div>
+        console.log('sbc')
 
-            <!-- SIGNUP -->
 
 
-            <div class='signupForm'>
+        // Show/Hide options
+        const ellipsisIcon = RTsec.querySelectorAll('.fas.fa-ellipsis-v')
+        const option = RTsec.querySelectorAll('.ellipsis-option')
 
-                <div class='signupForm-content'>
-                    <h1>Create Account</h1>
+        if (loginId != null) {
+            for (let i = 0; i < ellipsisIcon.length; i++) {
+                ellipsisIcon[i].addEventListener('click', (e) => {
+                    if (window.getComputedStyle(option[i]).display == 'none') {
+                        e.target.nextElementSibling.style.display = 'block'
+                    } else {
+                        e.target.nextElementSibling.style.display = 'none'
+                    }
+                })
+            }
+        }
 
-                    <div class='signupForm-content-div'>
-                        <p>Email</p>
-                        <input id='email-signup' type="text" placeholder="Enter Email">
-                    </div>
-                    <div class='signup-noti'>
-                        <p id='email-signup-noti'></p>
-                    </div>
 
-                    <div class='signupForm-content-div'>
-                        <p>Password</p>
-                        <input id='password-signup' type="password" placeholder="Enter password">
-                    </div>
-                    <div class='signup-noti'>
-                        <p id='password-signup-noti'></p>
-                    </div>
 
-                    <div class='signupForm-content-div'>
-                        <p>Name</p>
-                        <input id='name-signup' type="text" placeholder="Enter name">
-                    </div>
-                    <div class='signup-noti'>
-                        <p id='name-signup-noti'></p>
-                    </div>
+        async function handleCmt() {
+            const opt = await firebase.firestore().collection('Home').doc(idSelected)
+                .collection('viewers').where('userId', '==', `${loginId}`).get()
 
-                    <div class='signupForm-login'>
-                        <p class='signupForm-login-p1'>Already have an account?</p>
-                        <p id='signUpSwitch' class='loginForm-login-p2' onclick=signUpSwitch()>Sign up</p>
+            for (let i = 0; i < ellipsisIcon.length; i++) {
+                ellipsisIcon[i].addEventListener('click', (e) => {
+                    if (opt.docs.some((i) => {
+                        return i.id == e.target.id
+                    })) {
+                        e.target.nextElementSibling.lastElementChild.style.display = 'none'
+                    } else {
+                        e.target.nextElementSibling.firstElementChild.style.display = 'none'
+                        e.target.nextElementSibling.firstElementChild.nextElementSibling.style.display = 'none'
+                    }
+                })
+            }
 
-                    </div>
 
-                    <button id='btn-signup' class='signupForm-btn'>SIGN UP</button>
 
-                </div>
-            </div>
+            // 2.XÓA 
+            const del = RTsec.querySelectorAll('.ellipsis-option_delete')
+            for (let i = 0; i < del.length; i++) {
+                del[i].addEventListener('click', (e) => {
+                    const delId = e.target.parentElement.id
+                    // console.log(delId)
+                    if (delId) {
+                        firebase.database().ref('movie').child(delId).remove()
+                    }
+                })
 
-            <!-- LOGIN -->
+            }
 
+            firebase.database().ref('movie').on("child_removed", (snapshot) => {
 
-            <div class='loginForm'>
+                if (document.getElementById("cmt-".concat(snapshot.key))) {
+                    document.getElementById("cmt-".concat(snapshot.key)).remove()
+                }
 
-                <div class='loginForm-content'>
-                    <h1>Login</h1>
+            })
 
-                    <div class='loginForm-content-div'>
-                        <p>Email</p>
-                        <input id='email-login' type="text" placeholder="Enter Email">
-                    </div>
-                    <div class='login-noti'>
-                        <p id='email-login-noti'></p>
-                    </div>
 
-                    <div class='loginForm-content-div'>
-                        <p>Password</p>
-                        <input id='password-login' type="password" placeholder="Enter Password">
-                    </div>
-                    <div class='login-noti'>
-                        <p id='password-login-noti'></p>
-                    </div>
 
+            const delFS = document.querySelectorAll('.ellipsis-option_delete')
+            const cmtRemoved = await firebase.firestore().collection('Home').doc(idSelected)
+                .collection('viewers')
+            for (let i = 0; i < delFS.length; i++) {
 
+                delFS.item(i).addEventListener('click', (e) => {
+                    if (e.target.parentElement.parentElement.previousElementSibling.id) {
+                        const removeId = e.target.parentElement.parentElement.previousElementSibling.id
+                        cmtRemoved.doc(removeId).delete()
+                    }
+                })
+            }
 
 
-                    <div class='loginForm-login'>
-                        <p class='loginForm-login-p1'>Don't have an account?</p>
-                        <p id='signUpSwitch' class='loginForm-login-p2' onclick = signUpSwitch()>Sign up</p>
 
-                    </div>
+            const update = RTsec.querySelectorAll('.ellipsis-option_update')
+            console.log(update.length)
+            for (let i = 0; i < update.length; i++) {
 
-                    <button id='btn-login' class='loginForm-btn'>LOGIN</button>
+                update[i].addEventListener('click', (e) => {
 
-                </div>
 
-            </div>
 
-        </div>
 
-    </div>
 
 
+                    e.target.parentElement.parentElement.parentElement.nextElementSibling.style.display = 'flex'
 
-    <!-- Header -->
+                    console.log(e.target.parentElement.parentElement.parentElement.previousElementSibling
+                        .firstElementChild.nextElementSibling)
 
-    <div>
 
-        <header>
+                    if (e.target.parentElement.parentElement.parentElement.previousElementSibling
+                        .firstElementChild.nextElementSibling) {
 
-            <!-- Navbar -->
+                        e.target.parentElement.parentElement.parentElement.previousElementSibling
+                            .firstElementChild.nextElementSibling
+                            .style.display = 'none'
+                    }
 
-            <div class="navbar">
 
-                <div class="navbarLeft">
-                    <div class="navbarLeft-detail" id='navbarLeft-detail_Home'>
-                        <i class="fas fa-film"></i>
-                        <p>Trang chủ</p>
 
-                    </div>
+                    e.target.parentElement.parentElement.parentElement.previousElementSibling
+                        .lastElementChild
+                        .style.display = 'block'
 
-                    <div class="navbarLeft-detail" id='navbarLeft-detail_Search'>
-                        <i class="fas fa-search"></i>
-                        <p>Tìm kiếm phim</p>
-                    </div>
 
+                    e.target.parentElement.parentElement.parentElement.style.display = 'none'
 
-                    <div class="navbarLeft-detail">
-                        <i class="fas fa-graduation-cap"></i>
-                        <p>Học qua phim</p>
-                    </div>
-                </div>
 
 
-                <!-- <div class="navbarRight"> -->
 
-                <div class="navbarRight_signupAndLogin">
-                    <div class='navbarRight_signup'>Đăng ký</div>
-                    <div class='navbarRight_login'>Đăng nhập</div>
-                </div>
 
-                <div class="navbarRight_accountAndLogout">
-                    <div class='navbarRight_account'>Account</div>
-                    <div class='navbarRight_logout'>Log out</div>
-                </div>
 
-                <!-- </div> -->
 
-            </div>
 
+                    let oldCmt = e.target.parentElement.parentElement.parentElement
+                        .previousElementSibling.lastElementChild
 
 
-            <!-- Search Box -->
 
-            <div class='search'>
-                <div class='search-box'>
-                    <input id='search_input' type="string" placeholder="Nhập tên phim">
-                    <button id='search_btn'>Tìm kiếm </button>
-                </div>
-            </div>
+                    oldCmt.innerText = e.target.parentElement.parentElement.parentElement
+                        .previousElementSibling.lastElementChild.previousElementSibling.innerText
 
-        </header>
 
 
 
 
+                    oldCmt.addEventListener('blur', event => {
+                        const newCmt = event.target.innerText
+                        const save = [...RTsec.getElementsByClassName('update-option_save')]
 
-    <!-- BODY -->
+                        save.forEach(element => {
+                            element.addEventListener('click', (i) => {
+                                const updateId = i.target.id.slice(5)
 
 
-    <div class='body-box'>
+                                firebase.database().ref('movie').child(updateId)
+                                    .update({ rtUserCmts: newCmt })
 
-        <div class='body-box-left' id='body-box-left'>
-            <img id='body-box-left_img' src="" alt="">
-            <div id='body-box-left_overlay'></div>
-            <img id='body-box-left_playIcon' src="./pngegg.png" alt="">
-        </div>
+                            })
+                        });
 
+                    })
 
-        <div class='body-box-center'>
+                })
 
-            <div>
-                <div class='body-box-center-title'>
-                    <h3></h3>
-                    <p></p>
-                </div>
+            }
 
-                <div class='body-box-center_Intro'>GIỚI THIỆU PHIM</div>
+            firebase.database().ref('movie').on("child_changed", (snapshot) => {
+                document.getElementById(`updateOption-${snapshot.key}`).style.display = 'none'
+                document.getElementById(`userUpdate-${snapshot.key}`).style.display = 'none'
+                document.getElementById(`userCmt-${snapshot.key}`).style.display = 'block'
+                document.getElementById(`userCmt-${snapshot.key}`).innerHTML = snapshot.val().rtUserCmts
+                document.getElementById(`ellipsis-${snapshot.key}`).style.display = 'block'
+                document.getElementById(`ellipsis-${snapshot.key}`).lastElementChild.style.display = 'none'
+            })
+        }
 
-                <div class='body-box-center-content'>
-                    <p class='body-box-center-content_description'></p>
+        handleCmt()
 
-                    <div class='body-box-center-content-Info'>
-                        <label for="">Quốc gia</label>
-                        <p class='body-box-center-content-Info_nation'></p>
-                    </div>
+    })
 
-                    <div class='body-box-center-content-Info'>
-                        <label for="">Thể loại</label>
-                        <p class='body-box-center-content-Info_gerne'></p>
-                    </div>
 
-                    <div class='body-box-center-content-Info'>
-                        <label for="">Đạo diễn</label>
-                        <p class='body-box-center-content-Info_director'></p>
-                    </div>
 
-                    <div id ='hihi'class='body-box-center-content-Info'>
-                        <label for="">Diễn viên</label>
-                        <p class='body-box-center-content-Info_actors'></p>
-                    </div>
+// Go to movie
 
 
-                </div>
+document.getElementById('body-box-left').addEventListener('click', () => {
+    localStorage.setItem('movieId', idSelected)
+    window.location.assign('movie.html')
 
-            </div>
+})
 
 
-            <div class='comment'>
-                <div class='comment_binhLuan'>Bình luận</div>
-                <div class='comment-box'>
-                    <img src="https://i.ibb.co/svd6QPK/default-avatar.jpg" alt="">
-                    <input id='comment-input' type="text" placeholder="Bình luận">
 
-                </div>
-                <button class='comment_btn'>Bình luận</button>
-            </div>
-
-            <div id='RTsec'></div>
-         
-
-        </div>
-        <div class='body-box-right'></div>
-
-
-    </div>
-
-  <!-- Footer -->
-  <footer class='foot'>
-
-    <div class='footer1'>Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
-        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s</div>
-    <div class='footer2'>
-        <p class='footer-head'>INDEX</p>
-        <div class='footer-content'>
-
-            <p>Trang chủ</p>
-        </div>
-        <div class='footer-content'>
-
-            <p>Hướng dẫn xem với phụ đề</p>
-        </div>
-    </div>
-    <div class='footer3'>
-        <p class='footer-head'>QUY ĐỊNH</p>
-        <div class='footer-content'>
-
-            <p>Điều khoản sử dụng</p>
-        </div>
-        <div class='footer-content'>
-
-            <p>Chính sách riêng tư</p>
-        </div>
-        <div class='footer-content'>
-
-            <p>Bản quyền và nội dung</p>
-        </div>
-
-    </div>
-    <div class='footer4'>
-        <p class='footer-head'>LIÊN HỆ</p>
-        <div class='footer-content'>
-            <p>Email</p>
-        </div>
-        <div class='footer-content'>
-
-            <p>Số điện thoại</p>
-        </div>
-    </div>
-
-</footer>
-
-
-
-
-
-
-    <!-- FB -->
-    <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-analytics.js"></script>
-
-
-
-    <script src='./FB.js' type='module'></script>
-    <script src='login-css.js' type='module'></script>
-    <script src='login.js' type='module'></script>
-   
-    <script src='detail-css.js' type='module'></script>
-    <script src='detail.js' type='module'></script>
-
-</body>
-
-</html>
