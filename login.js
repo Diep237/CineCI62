@@ -34,7 +34,7 @@ const passwordLoginNoti = document.getElementById('password-login-noti')
 
 // Show sign in dashboard
 document.querySelector('.navbarRight_signup').addEventListener('click', () => {
-    document.getElementById('abc').style.transform = 'translateX(100%)'
+    document.querySelector('.login-pic').style.transform = 'translateX(100%)'
     document.querySelector('.overlay').style.display = 'block'
     document.querySelector('.signupAndLogin').style.display = 'block'
     document.getElementById('loginCancelIcon').style.display = 'block'
